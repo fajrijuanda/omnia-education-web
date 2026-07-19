@@ -116,6 +116,11 @@ import { educationSubIndustries } from "../industries/education-and-courses/conf
 import { LmsPortal } from "../industries/education-and-courses/e-learning-lms/LmsPortal";
 import { KknPortal } from "../industries/education-and-courses/kkn-and-fieldwork/KknPortal";
 import { AcademicPortal } from "../industries/education-and-courses/layanan-akademik/AcademicPortal";
+import { SchoolPortal } from "../industries/education-and-courses/school/SchoolPortal";
+import { BootcampPortal } from "../industries/education-and-courses/bootcamp/BootcampPortal";
+import { TutoringPortal } from "../industries/education-and-courses/tutoring/TutoringPortal";
+import { LanguageCoursePortal } from "../industries/education-and-courses/language-course/LanguageCoursePortal";
+import { TrainingCenterPortal } from "../industries/education-and-courses/training-center/TrainingCenterPortal";
 import {
   churchContextPages,
   clinicContextPages,
@@ -234,41 +239,59 @@ function getFnbPath(page: PortalPage, subIndustrySlug: string) {
 }
 
 const educationSubIndustryPages: Partial<Record<PortalPage, string>> = {
-  "education-lms": "lms",
-  "education-kkn": "kkn",
-  "education-academic": "academic"
+  "education-school-campus": "school-campus",
+  "education-bootcamp": "bootcamp",
+  "education-tutoring": "tutoring",
+  "education-language-course": "language-course",
+  "education-training-center": "training-center"
 };
 
 const educationModulePageById: Record<string, PortalPage> = {
-  "courses": "education-courses",
-  "assignments": "education-assignments",
-  "attendance": "education-attendance",
-  "gradebook": "education-gradebook",
-  "groups": "education-groups",
-  "locations": "education-locations",
-  "logbook": "education-logbook",
-  "reports": "education-reports",
-  "requests": "education-requests",
-  "documents": "education-documents",
-  "approvals": "education-approvals",
-  "billing": "education-billing",
-  "dashboard": "education-dashboard"
+  "dashboard": "education-school-dashboard",
+  "enrollment": "education-school-enrollment",
+  "classes": "education-school-classes",
+  "grades": "education-school-grades",
+  "attendance": "education-school-attendance",
+  "lms": "education-bootcamp-lms",
+  "projects": "education-bootcamp-projects",
+  "cohorts": "education-bootcamp-cohorts",
+  "mentorship": "education-bootcamp-mentorship",
+  "schedules": "education-tutoring-schedules",
+  "invoicing": "education-tutoring-invoicing",
+  "reports": "education-tutoring-reports",
+  "exams": "education-language-exams",
+  "certificates": "education-language-certificates",
+  "trainings": "education-training-trainings",
+  "trainees": "education-training-trainees",
+  "skill-tracking": "education-training-skill-tracking"
 };
 
 const educationRouteSlugByPage: Partial<Record<PortalPage, string>> = {
-  "education-courses": "courses",
-  "education-assignments": "assignments",
-  "education-attendance": "attendance",
-  "education-gradebook": "gradebook",
-  "education-groups": "groups",
-  "education-locations": "locations",
-  "education-logbook": "logbook",
-  "education-reports": "reports",
-  "education-requests": "requests",
-  "education-documents": "documents",
-  "education-approvals": "approvals",
-  "education-billing": "billing",
-  "education-dashboard": "dashboard",
+  "education-school-dashboard": "dashboard",
+  "education-school-enrollment": "enrollment",
+  "education-school-classes": "classes",
+  "education-school-grades": "grades",
+  "education-school-attendance": "attendance",
+  "education-bootcamp-dashboard": "dashboard",
+  "education-bootcamp-lms": "lms",
+  "education-bootcamp-projects": "projects",
+  "education-bootcamp-cohorts": "cohorts",
+  "education-bootcamp-mentorship": "mentorship",
+  "education-tutoring-dashboard": "dashboard",
+  "education-tutoring-schedules": "schedules",
+  "education-tutoring-attendance": "attendance",
+  "education-tutoring-invoicing": "invoicing",
+  "education-tutoring-reports": "reports",
+  "education-language-dashboard": "dashboard",
+  "education-language-classes": "classes",
+  "education-language-attendance": "attendance",
+  "education-language-exams": "exams",
+  "education-language-certificates": "certificates",
+  "education-training-dashboard": "dashboard",
+  "education-training-trainings": "trainings",
+  "education-training-trainees": "trainees",
+  "education-training-certificates": "certificates",
+  "education-training-skill-tracking": "skill-tracking",
   "education-settings": "settings"
 };
 
@@ -276,7 +299,7 @@ function getEducationSubIndustrySlug(pathname: string, page: PortalPage) {
   const pathMatch = pathname.match(/^\/portal\/education-and-courses\/([^/]+)/);
   const pathSlug = pathMatch?.[1];
   if (pathSlug && educationSubIndustries[pathSlug]) return pathSlug;
-  return educationSubIndustryPages[page] ?? "lms";
+  return educationSubIndustryPages[page] ?? "school-campus";
 }
 
 function getEducationPath(page: PortalPage, subIndustrySlug: string) {
@@ -487,18 +510,7 @@ export function PortalAppShell({
     if (page === activePage) {
       return;
     }
-    if (page === "fnb-cafe" || (page.startsWith("fnb-") && getFnbSubIndustrySlug(pathname, page) === "cafe")) {
-      window.location.href = process.env.NEXT_PUBLIC_CAFE_URL || "https://omnia-cafe-web.vercel.app";
-      return;
-    }
-    if (page === "hris" || page.startsWith("hris-")) {
-      window.location.href = process.env.NEXT_PUBLIC_HRIS_URL || "https://omnia-hris-web.vercel.app";
-      return;
-    }
-    if (page === "clinic-dashboard" || page.startsWith("clinic-")) {
-      window.location.href = process.env.NEXT_PUBLIC_CLINIC_URL || "https://omnia-clinic-web.vercel.app";
-      return;
-    }
+    // SSO Handoff is handled by resolveVerticalTarget in a useEffect listening to pathname changes
 
     if (contentLoadingTimer.current) {
       window.clearTimeout(contentLoadingTimer.current);
@@ -561,7 +573,7 @@ export function PortalAppShell({
       setActiveHrisTier("enterprise");
       setStoredHrisTier("enterprise");
     }
-    const nextPage = nextRole === "employee" && (initialPage === "home" || initialPage === "apps" || initialPage === "education-lms" || initialPage === "hris-employees")
+    const nextPage = nextRole === "employee" && (initialPage === "home" || initialPage === "apps" || initialPage === "education-school-campus" || initialPage === "hris-employees")
       ? "hris-attendance"
       : initialPage;
     setActivePage(nextPage);
@@ -601,8 +613,8 @@ export function PortalAppShell({
   const fnbDashboardPage = (Object.entries(fnbSubIndustryPages).find(([, slug]) => slug === fnbSubIndustrySlug)?.[0] ?? "fnb-cafe") as PortalPage;
   
   const educationSubIndustrySlug = getEducationSubIndustrySlug(pathname, pageForContext);
-  const eduSubIndustry = educationSubIndustries[educationSubIndustrySlug] ?? educationSubIndustries.lms;
-  const eduDashboardPage = (Object.entries(educationSubIndustryPages).find(([, slug]) => slug === educationSubIndustrySlug)?.[0] ?? "education-lms") as PortalPage;
+  const eduSubIndustry = educationSubIndustries[educationSubIndustrySlug] ?? educationSubIndustries["school-campus"];
+  const eduDashboardPage = (Object.entries(educationSubIndustryPages).find(([, slug]) => slug === educationSubIndustrySlug)?.[0] ?? "education-school-campus") as PortalPage;
   
   const hrisTierRank = { starter: 1, growth: 2, pro: 3, enterprise: 4 };
   const hrisItemMinTier = (page: string) => {
@@ -860,9 +872,14 @@ export function PortalAppShell({
             {!trialLocked && isChurchContextPage && !isGlobalPage ? <PageShell key={activePage}><ChurchPortal activePage={activePage} currentTier={effectiveHrisTier} /></PageShell> : null}
             {!trialLocked && activePage === "social-commerce-intelligence" ? <PageShell key="social-commerce-intelligence"><SocialCommerceOverviewPage role={role} tier={effectiveHrisTier} setActivePage={goToPage} onLockedModule={() => setUpgradeOpen(true)} /></PageShell> : null}
             {!trialLocked && isSocialCommerceContextPage && !isGlobalPage && activePage !== "social-commerce-intelligence" ? <PageShell key={activePage}><SocialCommerceFeaturePage activePage={activePage} currentTier={effectiveHrisTier} role={role} onLockedModule={() => setUpgradeOpen(true)} /></PageShell> : null}
-            {!trialLocked && activePage.startsWith("education-lms") && !isGlobalPage ? <PageShell key={activePage}><LmsPortal activePage={activePage} currentTier={effectiveHrisTier} /></PageShell> : null}
-            {!trialLocked && activePage.startsWith("education-kkn") && !isGlobalPage ? <PageShell key={activePage}><KknPortal activePage={activePage} currentTier={effectiveHrisTier} /></PageShell> : null}
-            {!trialLocked && activePage.startsWith("education-academic") && !isGlobalPage ? <PageShell key={activePage}><AcademicPortal activePage={activePage} currentTier={effectiveHrisTier} /></PageShell> : null}
+            {!trialLocked && routeIndustrySlug === "education-and-courses" && routeSubIndustrySlug === "school" && !isGlobalPage ? <PageShell key={activePage}><SchoolPortal activePage={activePage} currentTier={effectiveHrisTier} /></PageShell> : null}
+            {!trialLocked && routeIndustrySlug === "education-and-courses" && routeSubIndustrySlug === "bootcamp" && !isGlobalPage ? <PageShell key={activePage}><BootcampPortal activePage={activePage} currentTier={effectiveHrisTier} /></PageShell> : null}
+            {!trialLocked && routeIndustrySlug === "education-and-courses" && routeSubIndustrySlug === "tutoring" && !isGlobalPage ? <PageShell key={activePage}><TutoringPortal activePage={activePage} currentTier={effectiveHrisTier} /></PageShell> : null}
+            {!trialLocked && routeIndustrySlug === "education-and-courses" && routeSubIndustrySlug === "language-course" && !isGlobalPage ? <PageShell key={activePage}><LanguageCoursePortal activePage={activePage} currentTier={effectiveHrisTier} /></PageShell> : null}
+            {!trialLocked && routeIndustrySlug === "education-and-courses" && routeSubIndustrySlug === "training-center" && !isGlobalPage ? <PageShell key={activePage}><TrainingCenterPortal activePage={activePage} currentTier={effectiveHrisTier} /></PageShell> : null}
+            {!trialLocked && routeIndustrySlug === "education-and-courses" && routeSubIndustrySlug === "lms" && !isGlobalPage ? <PageShell key={activePage}><LmsPortal activePage={activePage} currentTier={effectiveHrisTier} /></PageShell> : null}
+            {!trialLocked && routeIndustrySlug === "education-and-courses" && routeSubIndustrySlug === "kkn" && !isGlobalPage ? <PageShell key={activePage}><KknPortal activePage={activePage} currentTier={effectiveHrisTier} /></PageShell> : null}
+            {!trialLocked && routeIndustrySlug === "education-and-courses" && routeSubIndustrySlug === "academic" && !isGlobalPage ? <PageShell key={activePage}><AcademicPortal activePage={activePage} currentTier={effectiveHrisTier} /></PageShell> : null}
             {activePage === "reports" ? <PageShell key="reports"><ReportsPage /></PageShell> : null}
             {activePage === "notifications" ? <PageShell key="notifications"><NotificationsPage /></PageShell> : null}
             {activePage === "billing" ? <PageShell key="billing"><BillingPage currentTier={effectiveHrisTier} industries={catalogIndustries} onTierActivated={handleTierActivated} /></PageShell> : null}
